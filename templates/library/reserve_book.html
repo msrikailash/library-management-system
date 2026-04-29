@@ -21,9 +21,13 @@
         <h4 style="font-weight:700;color:var(--text-primary);margin-bottom:0.5rem;">{{ book.title }}</h4>
         <p style="color:var(--text-muted);font-size:0.9rem;margin-bottom:2rem;">by {{ book.author }}</p>
 
-        <div class="alert alert-warning mb-4 text-start" style="background:var(--warning-glow);border:1px solid rgba(245,158,11,0.2);">
-          <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
-          This book is currently out of stock. Reserving it will place you in the queue.
+        <div class="alert alert-info mb-4 text-start" style="background:var(--primary-glow);border:1px solid rgba(99,102,241,0.2);">
+          <i class="bi bi-info-circle-fill text-info me-2"></i>
+          {% if book.is_available %}
+            This book is currently available. Reserving it will hold a copy for you. Please visit the library to collect it.
+          {% else %}
+            This book is currently out of stock. Reserving it will place you in the queue. You'll be notified when it's available.
+          {% endif %}
         </div>
 
         <form method="post">

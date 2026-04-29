@@ -1,35 +1,74 @@
-<!-- Book Grid Partial -->
+{% load static %}
+
 {% if page_obj %}
-<div class="book-grid">
+<div class="row g-3">
   {% for book in page_obj %}
-  <a href="{% url 'book_detail' book.pk %}" style="text-decoration:none;color:inherit;">
-    <div class="book-card">
-      <div class="book-cover">
-        {% if book.image %}
-          <img src="{{ book.image.url }}" alt="{{ book.title }}">
-        {% else %}
-          <i class="bi bi-journal-richtext book-cover-placeholder"></i>
-        {% endif %}
-        <div class="book-cover-badge">
-          {% if book.is_available %}
-            <span class="badge-lib success"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Available</span>
+  <div class="col-sm-6 col-md-4 col-lg-3">
+    <div class="card-panel book-card" style="height:100%;transition:transform 0.2s ease,box-shadow 0.2s ease;overflow:hidden;">
+      <!-- Cover Image -->
+      <a href="{% url 'book_detail' book.pk %}" style="text-decoration:none;display:block;">
+        <div style="height:180px;background:linear-gradient(135deg,#1e293b,#0f172a);overflow:hidden;display:flex;align-items:center;justify-content:center;position:relative;">
+          {% if book.image %}
+            <img src="{{ book.image.url }}" alt="{{ book.title }}" style="width:100%;height:100%;object-fit:cover;">
           {% else %}
-            <span class="badge-lib danger"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Out</span>
+            <i class="bi bi-journal-richtext" style="font-size:3.5rem;color:rgba(255,255,255,0.08);"></i>
           {% endif %}
+          <!-- Availability Badge -->
+          <div style="position:absolute;top:10px;right:10px;">
+            {% if book.is_available %}
+              <span class="badge-lib success" style="font-size:0.65rem;padding:3px 8px;">
+                <i class="bi bi-check-circle-fill"></i> {{ book.available_quantity }} avail
+              </span>
+            {% else %}
+              <span class="badge-lib danger" style="font-size:0.65rem;padding:3px 8px;">
+                <i class="bi bi-x-circle-fill"></i> Out of Stock
+              </span>
+            {% endif %}
+          </div>
         </div>
-      </div>
-      <div class="book-card-body">
-        <div class="book-title" title="{{ book.title }}">{{ book.title }}</div>
-        <div class="book-author">{{ book.author }}</div>
-        <div class="book-meta">
-          {% if book.category %}
-          <span style="font-size:0.72rem;color:var(--primary-light);background:var(--primary-glow);padding:2px 8px;border-radius:10px;">{{ book.category.name }}</span>
+      </a>
+
+      <!-- Card Body -->
+      <div class="card-panel-body" style="padding:1rem;">
+        <a href="{% url 'book_detail' book.pk %}" style="text-decoration:none;">
+          <h6 style="font-family:'Outfit',sans-serif;font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:0.25rem;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+            {{ book.title }}
+          </h6>
+        </a>
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:0.5rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          {{ book.author }}
+        </div>
+
+        {% if book.category %}
+        <span style="font-size:0.68rem;background:var(--primary-glow);color:var(--primary-light);padding:2px 8px;border-radius:12px;display:inline-block;margin-bottom:0.75rem;">
+          {{ book.category.name }}
+        </span>
+        {% endif %}
+
+        <!-- Action Buttons -->
+        <div class="d-grid gap-2 mt-auto">
+          <a href="{% url 'book_detail' book.pk %}" class="btn btn-outline-primary btn-sm" style="font-size:0.75rem;">
+            <i class="bi bi-eye-fill me-1"></i>View Details
+          </a>
+
+          {% if request.user.is_admin_user %}
+            <div class="d-flex gap-1">
+              <a href="{% url 'book_edit' book.pk %}" class="btn btn-outline-secondary btn-sm flex-grow-1" style="font-size:0.7rem;">
+                <i class="bi bi-pencil-fill"></i> Edit
+              </a>
+              <a href="{% url 'book_delete' book.pk %}" class="btn btn-outline-danger btn-sm" style="font-size:0.7rem;">
+                <i class="bi bi-trash3"></i>
+              </a>
+            </div>
+          {% else %}
+            <a href="{% url 'reserve_book' book.pk %}" class="btn btn-warning btn-sm text-dark" style="font-size:0.75rem;">
+              <i class="bi bi-bookmark-plus-fill me-1"></i>Reserve
+            </a>
           {% endif %}
-          <span class="book-qty"><i class="bi bi-layers"></i> {{ book.available_quantity }}/{{ book.quantity }}</span>
         </div>
       </div>
     </div>
-  </a>
+  </div>
   {% endfor %}
 </div>
 
@@ -38,23 +77,15 @@
 <nav class="mt-4 d-flex justify-content-center">
   <ul class="pagination">
     {% if page_obj.has_previous %}
-    <li class="page-item">
-      <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
-        <i class="bi bi-chevron-left"></i>
-      </a>
-    </li>
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>
     {% endif %}
     {% for num in page_obj.paginator.page_range %}
     <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-      <a class="page-link" href="?page={{ num }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}">{{ num }}</a>
+      <a class="page-link" href="?page={{ num }}">{{ num }}</a>
     </li>
     {% endfor %}
     {% if page_obj.has_next %}
-    <li class="page-item">
-      <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}">
-        <i class="bi bi-chevron-right"></i>
-      </a>
-    </li>
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>
     {% endif %}
   </ul>
 </nav>
@@ -62,11 +93,19 @@
 
 {% else %}
 <div class="card-panel">
-  <div class="empty-state">
-    <i class="bi bi-search"></i>
-    <h5>No books found</h5>
-    <p>Try adjusting your search or filters.</p>
-    <a href="{% url 'book_list' %}" class="btn btn-outline-primary btn-sm mt-2">Clear Filters</a>
+  <div class="card-panel-body">
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h5>No books found</h5>
+      <p>Try adjusting your search or filters.</p>
+    </div>
   </div>
 </div>
 {% endif %}
+
+<style>
+.book-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+</style>

@@ -524,10 +524,6 @@ def reports_view(request):
 @login_required
 def reserve_book_view(request, pk):
     book = get_object_or_404(Book, pk=pk)
-    
-    if book.available_quantity > 0:
-        messages.info(request, 'This book is currently available. You can borrow it directly.')
-        return redirect('book_detail', pk=book.pk)
         
     # Check if already reserved
     if Reservation.objects.filter(user=request.user, book=book, status='pending').exists():
@@ -585,17 +581,51 @@ def manage_reservations_view(request):
         reservation = get_object_or_404(Reservation, pk=res_id)
         
         if new_status in ['pending', 'fulfilled', 'cancelled']:
-            reservation.status = new_status
-            reservation.save()
-            
-            # Notify user if fulfilled
+            # If fulfilling, check availability and issue the book
             if new_status == 'fulfilled':
+                book = reservation.book
+                
+                # Check if the book is available
+                if book.available_quantity <= 0:
+                    messages.error(request, f'Cannot fulfill: "{book.title}" has no available copies.')
+                    return redirect(f"{request.path}?status={status_filter}")
+                
+                # Check if user already has this book issued
+                if IssuedBook.objects.filter(user=reservation.user, book=book, status='issued').exists():
+                    messages.error(request, f'Cannot fulfill: {reservation.user.username} already has "{book.title}" issued.')
+                    return redirect(f"{request.path}?status={status_filter}")
+                
+                # Create the issued book record
+                issued = IssuedBook.objects.create(
+                    user=reservation.user,
+                    book=book,
+                    issued_by=request.user,
+                    status='issued',
+                    due_date=timezone.now() + timedelta(days=14),
+                    notes=f'Auto-issued from reservation #{reservation.pk}'
+                )
+                
+                # Decrease available quantity
+                book.available_quantity -= 1
+                book.save()
+                
+                # Log the activity
+                ActivityLog.objects.create(
+                    user=request.user,
+                    action='Fulfilled Reservation',
+                    details=f'Issued "{book.title}" to {reservation.user.username} (reservation #{reservation.pk})'
+                )
+                
+                # Notify the student
                 Notification.objects.create(
                     user=reservation.user,
-                    message=f'Your reservation for "{reservation.book.title}" is ready!',
+                    message=f'Your reservation for "{book.title}" has been fulfilled! The book is now issued to you.',
                     notification_type='success',
-                    link=f"/books/{reservation.book.pk}/"
+                    link=f"/my-books/"
                 )
+            
+            reservation.status = new_status
+            reservation.save()
                 
             messages.success(request, f'Reservation status updated to {new_status}.')
         return redirect(f"{request.path}?status={status_filter}")

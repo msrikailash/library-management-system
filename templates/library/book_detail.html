@@ -35,9 +35,13 @@
           {% else %}
           {% if user_has_book %}
             <span class="badge-lib warning w-100 justify-content-center py-2">You have this book</span>
-          {% elif book.is_available %}
+          {% endif %}
+          {% if book.is_available %}
             <p style="font-size:0.8rem;color:var(--text-muted);">Ask a librarian to issue this book for you.</p>
           {% else %}
+            <p style="font-size:0.8rem;color:var(--text-faint);">This book is currently out of stock.</p>
+          {% endif %}
+          {% if not user_has_book %}
             <a href="{% url 'reserve_book' book.pk %}" class="btn btn-warning btn-sm w-100 text-dark">
               <i class="bi bi-bookmark-plus-fill me-1"></i>Reserve Book
             </a>
