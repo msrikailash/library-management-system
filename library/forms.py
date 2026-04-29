@@ -1,5 +1,5 @@
 from django import forms
-from .models import Book, Category, IssuedBook, Reservation
+from .models import Book, Category, IssuedBook
 from django.utils import timezone
 from datetime import timedelta
 
@@ -92,12 +92,3 @@ class BookSearchForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select'})
     )
 
-
-class ReservationForm(forms.ModelForm):
-    class Meta:
-        model = Reservation
-        fields = ['status', 'expiry_date']
-        widgets = {
-            'status': forms.Select(attrs={'class': 'form-select'}),
-            'expiry_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-        }

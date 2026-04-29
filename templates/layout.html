@@ -40,18 +40,12 @@
     <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
       <i class="bi bi-bar-chart-line-fill"></i> Reports
     </a>
-    <a href="{% url 'manage_reservations' %}" class="nav-item {% if 'reservation' in request.resolver_match.url_name %}active{% endif %}">
-      <i class="bi bi-list-check"></i> Reservations
-    </a>
     <a href="{% url 'activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
       <i class="bi bi-journal-text"></i> Activity Log
     </a>
     {% else %}
     <a href="{% url 'my_books' %}" class="nav-item {% if request.resolver_match.url_name == 'my_books' %}active{% endif %}">
       <i class="bi bi-bookmark-heart-fill"></i> My Books
-    </a>
-    <a href="{% url 'my_reservations' %}" class="nav-item {% if 'reservation' in request.resolver_match.url_name %}active{% endif %}">
-      <i class="bi bi-clock-history"></i> My Reservations
     </a>
     {% endif %}
 

@@ -115,26 +115,6 @@ class IssuedBook(models.Model):
         return abs(days) if days is not None else None
 
 
-class Reservation(models.Model):
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('fulfilled', 'Fulfilled'),
-        ('cancelled', 'Cancelled'),
-    )
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reservations')
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='reservations')
-    reserved_date = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
-    notified = models.BooleanField(default=False)
-    expiry_date = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        ordering = ['reserved_date']
-
-    def __str__(self):
-        return f"{self.book.title} - {self.user.username} ({self.status})"
-
-
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notifications')
     message = models.CharField(max_length=255)

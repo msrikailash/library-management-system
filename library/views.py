@@ -5,8 +5,8 @@ from django.utils import timezone
 from django.db.models import Q, Count, Sum, F
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-from .models import Book, Category, IssuedBook, Reservation, Notification, ActivityLog
-from .forms import BookForm, CategoryForm, IssueBookForm, ReturnBookForm, BookSearchForm, ReservationForm
+from .models import Book, Category, IssuedBook, Notification, ActivityLog
+from .forms import BookForm, CategoryForm, IssueBookForm, ReturnBookForm, BookSearchForm
 from accounts.models import CustomUser
 from accounts.forms import StudentRegistrationForm
 from decimal import Decimal
@@ -517,123 +517,6 @@ def reports_view(request):
         'overdue_students': overdue_students,
     }
     return render(request, 'library/reports.html', context)
-
-
-# ===================== RESERVATION VIEWS =====================
-
-@login_required
-def reserve_book_view(request, pk):
-    book = get_object_or_404(Book, pk=pk)
-        
-    # Check if already reserved
-    if Reservation.objects.filter(user=request.user, book=book, status='pending').exists():
-        messages.warning(request, 'You already have a pending reservation for this book.')
-        return redirect('book_detail', pk=book.pk)
-        
-    if request.method == 'POST':
-        Reservation.objects.create(user=request.user, book=book)
-        
-        # Notify admins
-        admins = CustomUser.objects.filter(role='admin')
-        for admin in admins:
-            Notification.objects.create(
-                user=admin,
-                message=f"{request.user.username} reserved {book.title}",
-                notification_type='reservation',
-                link=f"/reservations/manage/"
-            )
-            
-        messages.success(request, f'You have successfully reserved "{book.title}". We will notify you when it becomes available.')
-        return redirect('my_reservations')
-        
-    return render(request, 'library/reserve_book.html', {'book': book})
-
-@login_required
-def my_reservations_view(request):
-    reservations = Reservation.objects.filter(user=request.user).select_related('book').order_by('-reserved_date')
-    paginator = Paginator(reservations, 10)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    return render(request, 'library/my_reservations.html', {'page_obj': page_obj})
-
-@login_required
-def cancel_reservation_view(request, pk):
-    reservation = get_object_or_404(Reservation, pk=pk, user=request.user)
-    if request.method == 'POST':
-        reservation.status = 'cancelled'
-        reservation.save()
-        messages.success(request, 'Reservation cancelled successfully.')
-    return redirect('my_reservations')
-
-@admin_required
-def manage_reservations_view(request):
-    status_filter = request.GET.get('status', 'pending')
-    reservations = Reservation.objects.select_related('user', 'book').order_by('reserved_date')
-    
-    if status_filter in ['pending', 'fulfilled', 'cancelled']:
-        reservations = reservations.filter(status=status_filter)
-        
-    paginator = Paginator(reservations, 15)
-    page_obj = paginator.get_page(request.GET.get('page'))
-    
-    if request.method == 'POST':
-        res_id = request.POST.get('reservation_id')
-        new_status = request.POST.get('status')
-        reservation = get_object_or_404(Reservation, pk=res_id)
-        
-        if new_status in ['pending', 'fulfilled', 'cancelled']:
-            # If fulfilling, check availability and issue the book
-            if new_status == 'fulfilled':
-                book = reservation.book
-                
-                # Check if the book is available
-                if book.available_quantity <= 0:
-                    messages.error(request, f'Cannot fulfill: "{book.title}" has no available copies.')
-                    return redirect(f"{request.path}?status={status_filter}")
-                
-                # Check if user already has this book issued
-                if IssuedBook.objects.filter(user=reservation.user, book=book, status='issued').exists():
-                    messages.error(request, f'Cannot fulfill: {reservation.user.username} already has "{book.title}" issued.')
-                    return redirect(f"{request.path}?status={status_filter}")
-                
-                # Create the issued book record
-                issued = IssuedBook.objects.create(
-                    user=reservation.user,
-                    book=book,
-                    issued_by=request.user,
-                    status='issued',
-                    due_date=timezone.now() + timedelta(days=14),
-                    notes=f'Auto-issued from reservation #{reservation.pk}'
-                )
-                
-                # Decrease available quantity
-                book.available_quantity -= 1
-                book.save()
-                
-                # Log the activity
-                ActivityLog.objects.create(
-                    user=request.user,
-                    action='Fulfilled Reservation',
-                    details=f'Issued "{book.title}" to {reservation.user.username} (reservation #{reservation.pk})'
-                )
-                
-                # Notify the student
-                Notification.objects.create(
-                    user=reservation.user,
-                    message=f'Your reservation for "{book.title}" has been fulfilled! The book is now issued to you.',
-                    notification_type='success',
-                    link=f"/my-books/"
-                )
-            
-            reservation.status = new_status
-            reservation.save()
-                
-            messages.success(request, f'Reservation status updated to {new_status}.')
-        return redirect(f"{request.path}?status={status_filter}")
-        
-    return render(request, 'library/manage_reservations.html', {
-        'page_obj': page_obj,
-        'status': status_filter
-    })
 
 
 # ===================== NOTIFICATION VIEWS =====================

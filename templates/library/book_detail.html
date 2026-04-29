@@ -41,11 +41,7 @@
           {% else %}
             <p style="font-size:0.8rem;color:var(--text-faint);">This book is currently out of stock.</p>
           {% endif %}
-          {% if not user_has_book %}
-            <a href="{% url 'reserve_book' book.pk %}" class="btn btn-warning btn-sm w-100 text-dark">
-              <i class="bi bi-bookmark-plus-fill me-1"></i>Reserve Book
-            </a>
-          {% endif %}
+
           {% endif %}
         </div>
       </div>
