@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% block body %}
+
+<!-- Sidebar Overlay (mobile) -->
+<div id="sidebarOverlay" class="d-none" onclick="toggleSidebar()"
+     style="position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1049;"></div>
+
+<!-- ===== SIDEBAR ===== -->
+<div id="sidebar" class="sidebar">
+  <!-- Brand -->
+  <div class="sidebar-brand">
+    <div class="brand-icon"><i class="bi bi-book-half"></i></div>
+    <span class="brand-text">Library<span>MS</span></span>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+      <i class="bi bi-grid-1x2-fill"></i> Dashboard
+    </a>
+    <a href="{% url 'book_list' %}" class="nav-item {% if 'book' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-journal-bookmark-fill"></i> Books
+    </a>
+    {% if request.user.is_admin_user %}
+    <a href="{% url 'issue_book' %}" class="nav-item {% if request.resolver_match.url_name == 'issue_book' %}active{% endif %}">
+      <i class="bi bi-arrow-up-right-circle-fill"></i> Issue Book
+    </a>
+    <a href="{% url 'issued_books' %}" class="nav-item {% if request.resolver_match.url_name == 'issued_books' %}active{% endif %}">
+      <i class="bi bi-collection-fill"></i> Issued Books
+    </a>
+
+    <div class="nav-section-label">Admin</div>
+    <a href="{% url 'category_list' %}" class="nav-item {% if 'category' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-tags-fill"></i> Categories
+    </a>
+    <a href="{% url 'user_list' %}" class="nav-item {% if 'user' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-people-fill"></i> Students
+    </a>
+    <a href="{% url 'reports' %}" class="nav-item {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+      <i class="bi bi-bar-chart-line-fill"></i> Reports
+    </a>
+    <a href="{% url 'manage_reservations' %}" class="nav-item {% if 'reservation' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-list-check"></i> Reservations
+    </a>
+    <a href="{% url 'activity_log' %}" class="nav-item {% if request.resolver_match.url_name == 'activity_log' %}active{% endif %}">
+      <i class="bi bi-journal-text"></i> Activity Log
+    </a>
+    {% else %}
+    <a href="{% url 'my_books' %}" class="nav-item {% if request.resolver_match.url_name == 'my_books' %}active{% endif %}">
+      <i class="bi bi-bookmark-heart-fill"></i> My Books
+    </a>
+    <a href="{% url 'my_reservations' %}" class="nav-item {% if 'reservation' in request.resolver_match.url_name %}active{% endif %}">
+      <i class="bi bi-clock-history"></i> My Reservations
+    </a>
+    {% endif %}
+
+    <div class="nav-section-label">Account</div>
+    <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+      <i class="bi bi-person-fill"></i> Profile
+    </a>
+    <a href="{% url 'logout' %}" class="nav-item logout-item">
+      <i class="bi bi-box-arrow-right"></i> Logout
+    </a>
+  </nav>
+
+  <!-- Sidebar Footer / User Info -->
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">{{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-username">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="sidebar-role">{{ request.user.get_role_display }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div id="mainContent" class="main-content">
+  <!-- Top Navbar -->
+  <header class="top-navbar">
+    <div class="d-flex align-items-center gap-3">
+      <button class="sidebar-toggle-btn" onclick="toggleSidebar()" id="sidebarToggle" aria-label="Toggle sidebar">
+        <i class="bi bi-list"></i>
+      </button>
+      <span class="page-title">{% block page_title %}Dashboard{% endblock %}</span>
+    </div>
+    <div class="top-actions">
+      {% if request.user.is_admin_user %}
+      <a href="{% url 'book_add' %}" class="btn btn-primary btn-sm d-none d-md-inline-flex align-items-center gap-1">
+        <i class="bi bi-plus-lg"></i> Add Book
+      </a>
+      {% endif %}
+      <!-- Theme Toggle -->
+      <button id="themeToggleBtn" class="btn btn-sm btn-outline-secondary d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; border-radius: 50%; padding: 0;">
+        <i class="bi bi-moon-fill" id="themeIcon"></i>
+      </button>
+      <!-- Notification Bell -->
+      <div class="dropdown me-3">
+        <div data-bs-toggle="dropdown" style="cursor:pointer;position:relative;padding:0.25rem;">
+          <i class="bi bi-bell-fill" style="font-size:1.2rem;color:var(--text-muted);"></i>
+          {% if unread_notifications_count > 0 %}
+          <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.6rem;padding:0.25em 0.4em;">
+            {{ unread_notifications_count }}
+          </span>
+          {% endif %}
+        </div>
+        <div class="dropdown-menu dropdown-menu-end p-0" style="width:300px;background:var(--card-bg);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+          <div class="p-3" style="border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;">
+            <span style="font-weight:600;font-size:0.95rem;">Notifications</span>
+            {% if unread_notifications_count > 0 %}
+            <a href="{% url 'mark_all_notifications_read' %}" style="font-size:0.75rem;color:var(--primary-light);text-decoration:none;">Mark all read</a>
+            {% endif %}
+          </div>
+          <div style="max-height:300px;overflow-y:auto;">
+            {% for notif in recent_notifications %}
+            <a href="{% if notif.link %}{{ notif.link }}{% else %}#{% endif %}" class="dropdown-item p-3 {% if not notif.is_read %}bg-light-opacity{% endif %}" style="border-bottom:1px solid rgba(255,255,255,0.05);white-space:normal;">
+              <div style="font-size:0.85rem;color:var(--text-primary);margin-bottom:0.25rem;">{{ notif.message }}</div>
+              <div style="font-size:0.7rem;color:var(--text-faint);">{{ notif.created_at|timesince }} ago</div>
+            </a>
+            {% empty %}
+            <div class="p-4 text-center" style="color:var(--text-muted);font-size:0.85rem;">No notifications</div>
+            {% endfor %}
+          </div>
+          <div class="p-2 text-center" style="border-top:1px solid var(--border);background:rgba(0,0,0,0.2);">
+            <a href="{% url 'notifications' %}" style="font-size:0.8rem;color:var(--text-muted);text-decoration:none;">View all notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <div class="user-avatar-btn" data-bs-toggle="dropdown" style="cursor:pointer;">
+          {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+        </div>
+        <ul class="dropdown-menu dropdown-menu-end" style="background:var(--card-bg);border:1px solid var(--border);min-width:180px;">
+          <li><a class="dropdown-item text-light" href="{% url 'profile' %}"><i class="bi bi-person me-2"></i>Profile</a></li>
+          <li><hr class="dropdown-divider" style="border-color:var(--border);"></li>
+          <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  {% if messages %}
+  <div class="position-fixed top-0 end-0 p-3" style="z-index:1200;margin-top:70px;">
+    {% for message in messages %}
+    <div class="toast show align-items-center text-white border-0 mb-2"
+         style="background:var(--card-bg);border:1px solid var(--border)!important;border-radius:12px;min-width:280px;"
+         role="alert">
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2 py-3 px-3">
+          {% if message.tags == 'success' %}<i class="bi bi-check-circle-fill text-success fs-5"></i>
+          {% elif message.tags == 'error' %}<i class="bi bi-x-circle-fill text-danger fs-5"></i>
+          {% elif message.tags == 'warning' %}<i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+          {% else %}<i class="bi bi-info-circle-fill text-info fs-5"></i>{% endif %}
+          <span style="font-size:0.875rem;">{{ message }}</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- Page Content -->
+  <main class="page-content fade-in">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+
+<script>
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const main = document.getElementById('mainContent');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isMobile = window.innerWidth <= 768;
+  if (isMobile) {
+    sidebar.classList.toggle('mobile-open');
+    overlay.classList.toggle('d-none');
+  } else {
+    sidebar.classList.toggle('collapsed');
+    main.classList.toggle('expanded');
+  }
+}
+// Auto-hide toasts
+document.querySelectorAll('.toast').forEach(function(t) {
+  setTimeout(function() {
+    var bs = bootstrap.Toast.getOrCreateInstance(t);
+    bs.hide();
+  }, 4000);
+});
+</script>
+
+<script>
+  // Theme Toggle Logic
+  document.addEventListener('DOMContentLoaded', () => {
+    const themeBtn = document.getElementById('themeToggleBtn');
+    const themeIcon = document.getElementById('themeIcon');
+    const root = document.documentElement;
+    
+    function updateIcon() {
+      const isLight = root.getAttribute('data-theme') === 'light';
+      if(isLight) {
+        themeIcon.className = 'bi bi-sun-fill';
+        themeIcon.style.color = '#f59e0b';
+      } else {
+        themeIcon.className = 'bi bi-moon-fill';
+        themeIcon.style.color = 'var(--text-muted)';
+      }
+    }
+    
+    updateIcon();
+    
+    themeBtn.addEventListener('click', () => {
+      let currentTheme = root.getAttribute('data-theme');
+      let newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      
+      if(newTheme === 'dark') {
+        root.removeAttribute('data-theme');
+      } else {
+        root.setAttribute('data-theme', newTheme);
+      }
+      
+      localStorage.setItem('libraryTheme', newTheme);
+      updateIcon();
+    });
+  });
+</script>
+{% endblock %}

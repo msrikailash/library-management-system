@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block body %}
+<div class="auth-wrapper">
+  <!-- Left panel -->
+  <div class="auth-left">
+    <div class="auth-left-logo">
+      <div class="auth-logo-icon"><i class="bi bi-book-half"></i></div>
+      <div class="auth-logo-text">Library<span>MS</span></div>
+      <div class="auth-tagline">Smart Library Management System</div>
+    </div>
+    <div class="auth-features">
+      <div class="auth-feature-item">
+        <div class="auth-feature-icon" style="background:rgba(124,58,237,0.15);color:#8b5cf6;">
+          <i class="bi bi-collection-fill"></i>
+        </div>
+        <div>
+          <div class="auth-feature-title">Manage Books</div>
+          <div class="auth-feature-desc">Full catalog with categories & availability</div>
+        </div>
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-icon" style="background:rgba(16,185,129,0.15);color:#10b981;">
+          <i class="bi bi-arrow-left-right"></i>
+        </div>
+        <div>
+          <div class="auth-feature-title">Issue & Return</div>
+          <div class="auth-feature-desc">Track borrowed books and due dates</div>
+        </div>
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-icon" style="background:rgba(245,158,11,0.15);color:#f59e0b;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <div>
+          <div class="auth-feature-title">Overdue & Fines</div>
+          <div class="auth-feature-desc">Auto-calculate fines for late returns</div>
+        </div>
+      </div>
+      <div class="auth-feature-item">
+        <div class="auth-feature-icon" style="background:rgba(59,130,246,0.15);color:#3b82f6;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+        <div>
+          <div class="auth-feature-title">Student Accounts</div>
+          <div class="auth-feature-desc">Manage students and borrowing history</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="auth-right">
+    <div class="auth-form-card">
+      {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show mb-3" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+{% endblock %}

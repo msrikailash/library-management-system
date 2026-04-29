@@ -1,0 +1,139 @@
+{% extends 'layout.html' %}
+{% block title %}Issued Books{% endblock %}
+{% block page_title %}Issued Books{% endblock %}
+
+{% block content %}
+<!-- Tab Bar -->
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+  <div class="d-flex gap-2 flex-wrap">
+    <a href="?status=issued"
+       class="btn btn-sm {% if status == 'issued' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+      <i class="bi bi-arrow-up-right-circle me-1"></i>Issued
+    </a>
+    <a href="?status=overdue"
+       class="btn btn-sm {% if status == 'overdue' %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+      <i class="bi bi-clock me-1"></i>Overdue
+      {% if overdue_count > 0 %}
+        <span class="ms-1" style="background:rgba(239,68,68,0.2);color:var(--danger);padding:1px 7px;border-radius:10px;font-size:0.75rem;">{{ overdue_count }}</span>
+      {% endif %}
+    </a>
+    <a href="?status=returned"
+       class="btn btn-sm {% if status == 'returned' %}btn-success{% else %}btn-outline-secondary{% endif %}">
+      <i class="bi bi-check-circle me-1"></i>Returned
+    </a>
+    <a href="?status=all"
+       class="btn btn-sm {% if status == 'all' %}btn-outline-primary{% else %}btn-outline-secondary{% endif %}">
+      All Records
+    </a>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'export_issued_books_csv' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-download me-1"></i>Export CSV
+    </a>
+    <a href="{% url 'issue_book' %}" class="btn btn-success btn-sm">
+      <i class="bi bi-plus-lg me-1"></i>Issue New Book
+    </a>
+  </div>
+</div>
+
+<!-- Table -->
+<div class="card-panel">
+  <div class="table-wrap">
+    <table class="lib-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Book</th>
+          <th>Student</th>
+          <th>Issue Date</th>
+          <th>Due Date</th>
+          <th>Return Date</th>
+          <th>Fine</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for issue in page_obj %}
+      <tr {% if issue.is_overdue %}class="overdue-row"{% endif %}>
+        <td style="color:var(--text-faint);font-size:0.8rem;">{{ issue.pk }}</td>
+        <td>
+          <a href="{% url 'book_detail' issue.book.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">{{ issue.book.title|truncatechars:35 }}</a>
+          <div style="font-size:0.75rem;color:var(--text-muted);">{{ issue.book.author }}</div>
+        </td>
+        <td>
+          <a href="{% url 'user_detail' issue.user.pk %}" style="color:var(--text-primary);font-size:0.875rem;">
+            {{ issue.user.get_full_name|default:issue.user.username }}
+          </a>
+        </td>
+        <td style="font-size:0.82rem;">{{ issue.issue_date|date:"d M Y" }}</td>
+        <td style="font-size:0.82rem;">
+          {{ issue.due_date|date:"d M Y" }}
+          {% if issue.is_overdue %}
+          <div style="font-size:0.72rem;color:var(--danger);">Overdue!</div>
+          {% endif %}
+        </td>
+        <td style="font-size:0.82rem;">{{ issue.return_date|date:"d M Y"|default:"—" }}</td>
+        <td>
+          {% if issue.fine > 0 %}
+            <span class="badge-lib danger">₹{{ issue.fine }}</span>
+          {% else %}
+            <span style="color:var(--text-faint);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if issue.status == 'returned' %}
+            <span class="badge-lib muted">Returned</span>
+          {% elif issue.is_overdue %}
+            <span class="badge-lib danger"><i class="bi bi-exclamation-circle"></i> Overdue</span>
+          {% else %}
+            <span class="badge-lib success"><i class="bi bi-check-circle"></i> Issued</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if issue.status != 'returned' %}
+          <a href="{% url 'return_book' issue.pk %}" class="btn btn-sm btn-warning text-dark">
+            <i class="bi bi-arrow-down-left-circle me-1"></i>Return
+          </a>
+          {% else %}
+          <span style="color:var(--text-faint);font-size:0.8rem;">Closed</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="9">
+        <div class="empty-state">
+          <i class="bi bi-collection"></i>
+          <h5>No records found</h5>
+          <p>No books match the selected filter.</p>
+        </div>
+      </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?status={{ status }}&page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a>
+    </li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+      <a class="page-link" href="?status={{ status }}&page={{ num }}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?status={{ status }}&page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

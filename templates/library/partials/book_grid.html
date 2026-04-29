@@ -1,0 +1,72 @@
+<!-- Book Grid Partial -->
+{% if page_obj %}
+<div class="book-grid">
+  {% for book in page_obj %}
+  <a href="{% url 'book_detail' book.pk %}" style="text-decoration:none;color:inherit;">
+    <div class="book-card">
+      <div class="book-cover">
+        {% if book.image %}
+          <img src="{{ book.image.url }}" alt="{{ book.title }}">
+        {% else %}
+          <i class="bi bi-journal-richtext book-cover-placeholder"></i>
+        {% endif %}
+        <div class="book-cover-badge">
+          {% if book.is_available %}
+            <span class="badge-lib success"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Available</span>
+          {% else %}
+            <span class="badge-lib danger"><i class="bi bi-circle-fill" style="font-size:0.5rem;"></i> Out</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="book-card-body">
+        <div class="book-title" title="{{ book.title }}">{{ book.title }}</div>
+        <div class="book-author">{{ book.author }}</div>
+        <div class="book-meta">
+          {% if book.category %}
+          <span style="font-size:0.72rem;color:var(--primary-light);background:var(--primary-glow);padding:2px 8px;border-radius:10px;">{{ book.category.name }}</span>
+          {% endif %}
+          <span class="book-qty"><i class="bi bi-layers"></i> {{ book.available_quantity }}/{{ book.quantity }}</span>
+        </div>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+    </li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+      <a class="page-link" href="?page={{ num }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <li class="page-item">
+      <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.query %}&query={{ request.GET.query }}{% endif %}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+    </li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="card-panel">
+  <div class="empty-state">
+    <i class="bi bi-search"></i>
+    <h5>No books found</h5>
+    <p>Try adjusting your search or filters.</p>
+    <a href="{% url 'book_list' %}" class="btn btn-outline-primary btn-sm mt-2">Clear Filters</a>
+  </div>
+</div>
+{% endif %}

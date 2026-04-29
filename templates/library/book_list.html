@@ -1,0 +1,105 @@
+{% extends 'layout.html' %}
+{% block title %}Books{% endblock %}
+{% block page_title %}Book Catalog{% endblock %}
+
+{% block content %}
+<!-- Search & Filter Bar -->
+<form id="book-search-form" method="get" class="mb-4">
+  <div class="card-panel">
+    <div class="card-panel-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label">Search</label>
+          <div class="search-bar">
+            <i class="bi bi-search"></i>
+            {{ form.query }}
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Category</label>
+          {{ form.category }}
+        </div>
+        <div class="col-md-2">
+          <label class="form-label">Availability</label>
+          {{ form.availability }}
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+          <button type="submit" class="btn btn-primary flex-grow-1">
+            <i class="bi bi-funnel-fill"></i> Filter
+          </button>
+          <a href="{% url 'book_list' %}" class="btn btn-outline-secondary" title="Clear">
+            <i class="bi bi-x-lg"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Header Row -->
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <div>
+    <span class="section-title mb-0">All Books</span>
+    <span class="ms-2" style="font-size:0.82rem;color:var(--text-muted);">{{ total_books }} result{{ total_books|pluralize }}</span>
+  </div>
+  {% if request.user.is_admin_user %}
+  <div class="d-flex gap-2">
+    <a href="{% url 'export_books_csv' %}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-download me-1"></i>Export CSV
+    </a>
+    <a href="{% url 'book_add' %}" class="btn btn-primary btn-sm">
+      <i class="bi bi-plus-lg me-1"></i>Add Book
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Book Grid Container -->
+<div id="book-grid-container">
+  {% include 'library/partials/book_grid.html' %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('book-search-form');
+    const inputs = form.querySelectorAll('input, select');
+    const container = document.getElementById('book-grid-container');
+    
+    let debounceTimer;
+    
+    function fetchResults() {
+        const formData = new FormData(form);
+        const params = new URLSearchParams(formData).toString();
+        
+        fetch(`?${params}`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.html) {
+                container.innerHTML = data.html;
+            }
+        })
+        .catch(err => console.error('Error fetching search results:', err));
+    }
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(fetchResults, 300);
+        });
+        
+        if(input.tagName === 'SELECT') {
+            input.addEventListener('change', fetchResults);
+        }
+    });
+    
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetchResults();
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,378 @@
+{% extends 'layout.html' %}
+{% block title %}Reports & Analytics{% endblock %}
+{% block page_title %}Reports & Analytics{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Summary Stats Row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card primary">
+      <div class="stat-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+      <div>
+        <div class="stat-label">Total Titles</div>
+        <div class="stat-value">{{ total_books }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card info">
+      <div class="stat-icon"><i class="bi bi-layers-fill"></i></div>
+      <div>
+        <div class="stat-label">Total Copies</div>
+        <div class="stat-value">{{ total_copies }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card success">
+      <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div>
+        <div class="stat-label">Available</div>
+        <div class="stat-value">{{ total_available }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card danger">
+      <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+      <div>
+        <div class="stat-label">Overdue</div>
+        <div class="stat-value">{{ total_overdue }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card warning">
+      <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+      <div>
+        <div class="stat-label">Fines Collected</div>
+        <div class="stat-value" style="font-size:1.4rem;">₹{{ total_fines_collected }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Secondary stats -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card-panel">
+      <div class="card-panel-body d-flex align-items-center gap-3">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--info-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-people-fill" style="color:var(--info);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;">Students</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800;">{{ total_students }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card-panel">
+      <div class="card-panel-body d-flex align-items-center gap-3">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-tags-fill" style="color:var(--primary-light);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;">Categories</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800;">{{ total_categories }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card-panel">
+      <div class="card-panel-body d-flex align-items-center gap-3">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--success-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-arrow-up-right-circle-fill" style="color:var(--success);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;">Issued Now</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800;">{{ total_issued }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card-panel">
+      <div class="card-panel-body d-flex align-items-center gap-3">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.06);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="bi bi-arrow-down-left-circle-fill" style="color:var(--text-muted);font-size:1.2rem;"></i>
+        </div>
+        <div>
+          <div style="font-size:0.75rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;">Total Returned</div>
+          <div style="font-family:'Outfit',sans-serif;font-size:1.4rem;font-weight:800;">{{ total_returned }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-4 mb-4">
+  <!-- Monthly Trends Chart -->
+  <div class="col-lg-7">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-graph-up text-primary"></i> Monthly Trends</span>
+        <span style="font-size:0.78rem;color:var(--text-faint);">Last 6 months</span>
+      </div>
+      <div class="card-panel-body">
+        <div class="chart-container" style="position:relative;height:280px;">
+          <canvas id="trendsChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Distribution Chart -->
+  <div class="col-lg-5">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-pie-chart-fill text-warning"></i> Books by Category</span>
+      </div>
+      <div class="card-panel-body">
+        <div class="chart-container" style="position:relative;height:280px;">
+          <canvas id="categoryChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tables Row -->
+<div class="row g-4 mb-4">
+  <!-- Most Popular Books -->
+  <div class="col-lg-6">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-fire text-danger"></i> Most Borrowed Books</span>
+      </div>
+      <div class="table-wrap">
+        <table class="lib-table">
+          <thead>
+            <tr><th>#</th><th>Book</th><th>Borrows</th><th>Available</th></tr>
+          </thead>
+          <tbody>
+          {% for book in popular_books %}
+          <tr>
+            <td style="color:var(--text-faint);font-size:0.8rem;">{{ forloop.counter }}</td>
+            <td>
+              <a href="{% url 'book_detail' book.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">
+                {{ book.title|truncatechars:30 }}
+              </a>
+              <div style="font-size:0.75rem;color:var(--text-muted);">{{ book.author }}</div>
+            </td>
+            <td>
+              <span class="badge-lib {% if book.borrow_count > 5 %}danger{% elif book.borrow_count > 2 %}warning{% else %}info{% endif %}">
+                <i class="bi bi-arrow-up-right"></i> {{ book.borrow_count }}
+              </span>
+            </td>
+            <td>
+              {% if book.is_available %}
+                <span class="badge-lib success">{{ book.available_quantity }}/{{ book.quantity }}</span>
+              {% else %}
+                <span class="badge-lib danger">0/{{ book.quantity }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center py-4" style="color:var(--text-faint);">No borrowing data yet</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Borrowers -->
+  <div class="col-lg-6">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-trophy-fill text-warning"></i> Top Borrowers</span>
+      </div>
+      <div class="table-wrap">
+        <table class="lib-table">
+          <thead>
+            <tr><th>#</th><th>Student</th><th>Books Borrowed</th><th>Fines</th></tr>
+          </thead>
+          <tbody>
+          {% for borrower in top_borrowers %}
+          <tr>
+            <td style="color:var(--text-faint);font-size:0.8rem;">{{ forloop.counter }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#a855f7);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.65rem;color:#fff;flex-shrink:0;">
+                  {{ borrower.first_name|first|upper|default:"?" }}{{ borrower.last_name|first|upper|default:"" }}
+                </div>
+                <div>
+                  <a href="{% url 'user_detail' borrower.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">
+                    {{ borrower.get_full_name|default:borrower.username }}
+                  </a>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="badge-lib info"><i class="bi bi-collection"></i> {{ borrower.borrow_count }}</span>
+            </td>
+            <td>
+              {% if borrower.total_fine and borrower.total_fine > 0 %}
+                <span class="badge-lib danger">₹{{ borrower.total_fine }}</span>
+              {% else %}
+                <span style="color:var(--text-faint);">₹0</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center py-4" style="color:var(--text-faint);">No borrower data yet</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overdue Alert Table -->
+{% if overdue_students %}
+<div class="card-panel mb-4">
+  <div class="card-panel-header">
+    <span class="card-panel-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Overdue Books Alert</span>
+    <a href="{% url 'issued_books' %}?status=overdue" class="btn btn-outline-secondary btn-sm">View All</a>
+  </div>
+  <div class="table-wrap">
+    <table class="lib-table">
+      <thead>
+        <tr><th>Book</th><th>Student</th><th>Due Date</th><th>Days Overdue</th><th>Est. Fine</th><th>Action</th></tr>
+      </thead>
+      <tbody>
+      {% for issue in overdue_students %}
+      <tr class="overdue-row">
+        <td>
+          <div style="font-weight:600;font-size:0.875rem;">{{ issue.book.title|truncatechars:30 }}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">{{ issue.book.author }}</div>
+        </td>
+        <td>
+          <a href="{% url 'user_detail' issue.user.pk %}" style="color:var(--text-primary);font-size:0.875rem;">
+            {{ issue.user.get_full_name|default:issue.user.username }}
+          </a>
+        </td>
+        <td style="font-size:0.82rem;">{{ issue.due_date|date:"d M Y" }}</td>
+        <td>
+          <span class="badge-lib danger">
+            <i class="bi bi-clock"></i> {{ issue.days_until_due }} days
+          </span>
+        </td>
+        <td>
+          {% with fine=issue.calculate_fine %}
+          <span class="badge-lib danger">₹{{ fine }}</span>
+          {% endwith %}
+        </td>
+        <td>
+          <a href="{% url 'return_book' issue.pk %}" class="btn btn-sm btn-warning text-dark">
+            <i class="bi bi-arrow-down-left-circle me-1"></i>Return
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js theme defaults
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+
+// Monthly Trends Chart
+const trendsCtx = document.getElementById('trendsChart').getContext('2d');
+new Chart(trendsCtx, {
+  type: 'bar',
+  data: {
+    labels: {{ month_labels|safe }},
+    datasets: [
+      {
+        label: 'Issued',
+        data: {{ month_issued|safe }},
+        backgroundColor: 'rgba(124, 58, 237, 0.7)',
+        borderColor: '#7c3aed',
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false,
+      },
+      {
+        label: 'Returned',
+        data: {{ month_returned|safe }},
+        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+        borderColor: '#10b981',
+        borderWidth: 1,
+        borderRadius: 6,
+        borderSkipped: false,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: { usePointStyle: true, pointStyle: 'circle', padding: 20 }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: { stepSize: 1, precision: 0 },
+        grid: { color: 'rgba(255,255,255,0.04)' }
+      },
+      x: {
+        grid: { display: false }
+      }
+    }
+  }
+});
+
+// Category Distribution Chart
+const catCtx = document.getElementById('categoryChart').getContext('2d');
+const catLabels = {{ category_labels|safe }};
+const catValues = {{ category_values|safe }};
+const catColors = [
+  '#7c3aed', '#3b82f6', '#10b981', '#f59e0b', '#ef4444',
+  '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16', '#f97316'
+];
+new Chart(catCtx, {
+  type: 'doughnut',
+  data: {
+    labels: catLabels,
+    datasets: [{
+      data: catValues,
+      backgroundColor: catColors.slice(0, catLabels.length),
+      borderColor: '#1a2235',
+      borderWidth: 3,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+      legend: {
+        position: 'right',
+        labels: { usePointStyle: true, pointStyle: 'circle', padding: 12, font: { size: 12 } }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

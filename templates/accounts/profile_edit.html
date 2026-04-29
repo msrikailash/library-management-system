@@ -1,0 +1,88 @@
+{% extends 'layout.html' %}
+{% block title %}Edit Profile{% endblock %}
+{% block page_title %}Edit Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title">
+          <i class="bi bi-pencil-fill text-primary"></i> Edit Profile
+        </span>
+        <a href="{% url 'profile' %}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+      </div>
+      <div class="card-panel-body">
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {% csrf_token %}
+
+          <!-- Current Avatar Preview -->
+          <div class="text-center mb-4">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#a855f7);display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700;color:#fff;margin:0 auto;border:3px solid var(--primary-glow);overflow:hidden;">
+              {% if request.user.profile_pic %}
+                <img src="{{ request.user.profile_pic.url }}" alt="Profile" style="width:100%;height:100%;object-fit:cover;">
+              {% else %}
+                {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
+              {% endif %}
+            </div>
+            <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;">@{{ request.user.username }}</div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">First Name <span class="text-danger">*</span></label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="errorlist mt-1">{{ form.first_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Last Name <span class="text-danger">*</span></label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="errorlist mt-1">{{ form.last_name.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="errorlist mt-1">{{ form.email.errors }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Phone</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}<div class="errorlist mt-1">{{ form.phone.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              {{ form.address }}
+              {% if form.address.errors %}<div class="errorlist mt-1">{{ form.address.errors }}</div>{% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Profile Picture</label>
+              {% if request.user.profile_pic %}
+              <div class="mb-2 d-flex align-items-center gap-3">
+                <img src="{{ request.user.profile_pic.url }}" alt="Current"
+                     style="height:50px;width:50px;object-fit:cover;border-radius:50%;border:1px solid var(--border);">
+                <span style="font-size:0.8rem;color:var(--text-muted);">Upload new to replace</span>
+              </div>
+              {% endif %}
+              {{ form.profile_pic }}
+              <div class="form-text mt-1">Supported: JPG, PNG, WebP. Max 5MB.</div>
+            </div>
+          </div>
+
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+          {% endif %}
+
+          <div class="d-flex gap-3 mt-4">
+            <button type="submit" class="btn btn-primary px-4">
+              <i class="bi bi-check-lg me-1"></i>Save Changes
+            </button>
+            <a href="{% url 'profile' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

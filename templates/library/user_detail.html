@@ -1,0 +1,189 @@
+{% extends 'layout.html' %}
+{% block title %}{{ profile_user.get_full_name|default:profile_user.username }}{% endblock %}
+{% block page_title %}Student Profile{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<div class="mb-4">
+  <a href="{% url 'user_list' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Back to Students
+  </a>
+</div>
+
+<!-- Profile Header -->
+<div class="profile-header mb-4">
+  <div class="profile-avatar">
+    {% if profile_user.profile_pic %}
+      <img src="{{ profile_user.profile_pic.url }}" alt="Profile">
+    {% else %}
+      {{ profile_user.first_name|first|upper|default:"?" }}{{ profile_user.last_name|first|upper|default:"" }}
+    {% endif %}
+  </div>
+  <div style="flex:1;">
+    <div class="profile-name">{{ profile_user.get_full_name|default:profile_user.username }}</div>
+    <div class="profile-role mt-1">
+      <span class="badge-lib success"><i class="bi bi-person-fill"></i> {{ profile_user.get_role_display }}</span>
+      {% if not profile_user.is_active %}
+        <span class="badge-lib danger ms-1"><i class="bi bi-x-circle"></i> Inactive</span>
+      {% endif %}
+    </div>
+    {% if profile_user.email %}
+    <div class="mt-2" style="font-size:0.85rem;color:var(--text-muted);">
+      <i class="bi bi-envelope me-1"></i>{{ profile_user.email }}
+      {% if profile_user.phone %}&nbsp;&nbsp;<i class="bi bi-telephone me-1"></i>{{ profile_user.phone }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'issue_book' %}" class="btn btn-success btn-sm">
+      <i class="bi bi-arrow-up-right-circle me-1"></i>Issue Book
+    </a>
+    <a href="{% url 'user_delete' profile_user.pk %}" class="btn btn-outline-secondary btn-sm" style="border-color:rgba(239,68,68,0.3);color:var(--danger);">
+      <i class="bi bi-trash3 me-1"></i>Delete
+    </a>
+  </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card primary">
+      <div class="stat-icon"><i class="bi bi-collection-fill"></i></div>
+      <div>
+        <div class="stat-label">Total Borrowed</div>
+        <div class="stat-value">{{ issues|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card success">
+      <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+      <div>
+        <div class="stat-label">Currently Held</div>
+        <div class="stat-value">{{ active_count }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card warning">
+      <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+      <div>
+        <div class="stat-label">Total Fines</div>
+        <div class="stat-value">₹{{ total_fines }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card info">
+      <div class="stat-icon"><i class="bi bi-calendar-check-fill"></i></div>
+      <div>
+        <div class="stat-label">Member Since</div>
+        <div class="stat-value" style="font-size:1.1rem;">{{ profile_user.date_joined|date:"d M Y" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Account Details -->
+  <div class="col-lg-4">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-person-lines-fill"></i> Account Details</span>
+      </div>
+      <div class="card-panel-body">
+        <table class="lib-table">
+          <tr><td class="text-muted-lib" style="width:120px;">Username</td><td><strong>{{ profile_user.username }}</strong></td></tr>
+          <tr><td class="text-muted-lib">Email</td><td>{{ profile_user.email|default:"—" }}</td></tr>
+          <tr><td class="text-muted-lib">Phone</td><td>{{ profile_user.phone|default:"—" }}</td></tr>
+          <tr><td class="text-muted-lib">Role</td><td>{{ profile_user.get_role_display }}</td></tr>
+          <tr><td class="text-muted-lib">Joined</td><td>{{ profile_user.date_joined|date:"d M Y" }}</td></tr>
+          <tr><td class="text-muted-lib">Last Login</td><td>{{ profile_user.last_login|date:"d M Y, h:i A"|default:"Never" }}</td></tr>
+          <tr><td class="text-muted-lib">Status</td><td>
+            {% if profile_user.is_active %}
+              <span class="badge-lib success">Active</span>
+            {% else %}
+              <span class="badge-lib danger">Inactive</span>
+            {% endif %}
+          </td></tr>
+        </table>
+        {% if profile_user.address %}
+        <div class="mt-3 p-3" style="background:rgba(255,255,255,0.02);border-radius:10px;border:1px solid var(--border);">
+          <div style="font-size:0.75rem;color:var(--text-faint);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:0.3rem;">Address</div>
+          <p style="margin:0;font-size:0.85rem;color:var(--text-muted);">{{ profile_user.address }}</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Borrowing History -->
+  <div class="col-lg-8">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-clock-history"></i> Borrowing History</span>
+        <span style="font-size:0.8rem;color:var(--text-muted);">{{ issues|length }} record{{ issues|length|pluralize }}</span>
+      </div>
+      <div class="table-wrap">
+        <table class="lib-table">
+          <thead>
+            <tr>
+              <th>Book</th>
+              <th>Issue Date</th>
+              <th>Due Date</th>
+              <th>Return Date</th>
+              <th>Fine</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for issue in issues %}
+          <tr {% if issue.is_overdue %}class="overdue-row"{% endif %}>
+            <td>
+              <a href="{% url 'book_detail' issue.book.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">
+                {{ issue.book.title|truncatechars:30 }}
+              </a>
+              <div style="font-size:0.75rem;color:var(--text-muted);">{{ issue.book.author }}</div>
+            </td>
+            <td style="font-size:0.82rem;">{{ issue.issue_date|date:"d M Y" }}</td>
+            <td style="font-size:0.82rem;">
+              {{ issue.due_date|date:"d M Y" }}
+              {% if issue.is_overdue %}
+              <div style="font-size:0.72rem;color:var(--danger);">Overdue!</div>
+              {% endif %}
+            </td>
+            <td style="font-size:0.82rem;">{{ issue.return_date|date:"d M Y"|default:"—" }}</td>
+            <td>
+              {% if issue.fine > 0 %}
+                <span class="badge-lib danger">₹{{ issue.fine }}</span>
+              {% else %}
+                <span style="color:var(--text-faint);">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if issue.status == 'returned' %}
+                <span class="badge-lib muted"><i class="bi bi-check-circle"></i> Returned</span>
+              {% elif issue.is_overdue %}
+                <span class="badge-lib danger"><i class="bi bi-exclamation-circle"></i> Overdue</span>
+              {% else %}
+                <span class="badge-lib success"><i class="bi bi-check-circle"></i> Active</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6">
+            <div class="empty-state">
+              <i class="bi bi-inbox"></i>
+              <h5>No borrowing history</h5>
+              <p>This student hasn't borrowed any books yet.</p>
+              <a href="{% url 'issue_book' %}" class="btn btn-success btn-sm mt-2">Issue a Book</a>
+            </div>
+          </td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

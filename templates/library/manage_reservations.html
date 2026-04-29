@@ -1,0 +1,93 @@
+{% extends 'layout.html' %}
+{% block title %}Manage Reservations{% endblock %}
+{% block page_title %}Manage Reservations{% endblock %}
+
+{% block content %}
+<div class="card-panel">
+  <div class="card-panel-header flex-wrap gap-3">
+    <span class="card-panel-title"><i class="bi bi-list-check text-primary"></i> All Reservations</span>
+    <div class="d-flex gap-2">
+      <a href="?status=pending" class="btn btn-sm {% if status == 'pending' %}btn-primary{% else %}btn-outline-secondary{% endif %}">Pending</a>
+      <a href="?status=fulfilled" class="btn btn-sm {% if status == 'fulfilled' %}btn-success{% else %}btn-outline-secondary{% endif %}">Fulfilled</a>
+      <a href="?status=cancelled" class="btn btn-sm {% if status == 'cancelled' %}btn-danger{% else %}btn-outline-secondary{% endif %}">Cancelled</a>
+      <a href="?status=all" class="btn btn-sm {% if status == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="lib-table">
+      <thead>
+        <tr>
+          <th>Student</th>
+          <th>Book</th>
+          <th>Reserved On</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for res in page_obj %}
+      <tr>
+        <td>
+          <a href="{% url 'user_detail' res.user.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">
+            {{ res.user.get_full_name|default:res.user.username }}
+          </a>
+        </td>
+        <td>
+          <a href="{% url 'book_detail' res.book.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">
+            {{ res.book.title|truncatechars:30 }}
+          </a>
+        </td>
+        <td style="font-size:0.82rem;">{{ res.reserved_date|date:"d M Y, h:i A" }}</td>
+        <td>
+          {% if res.status == 'pending' %}
+            <span class="badge-lib warning">Pending</span>
+          {% elif res.status == 'fulfilled' %}
+            <span class="badge-lib success">Fulfilled</span>
+          {% else %}
+            <span class="badge-lib danger">Cancelled</span>
+          {% endif %}
+        </td>
+        <td>
+          <form method="post" class="d-flex gap-2 align-items-center">
+            {% csrf_token %}
+            <input type="hidden" name="reservation_id" value="{{ res.pk }}">
+            <select name="status" class="form-select form-select-sm" style="width:120px;" onchange="this.form.submit()">
+              <option value="pending" {% if res.status == 'pending' %}selected{% endif %}>Pending</option>
+              <option value="fulfilled" {% if res.status == 'fulfilled' %}selected{% endif %}>Fulfilled</option>
+              <option value="cancelled" {% if res.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+            </select>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <h5>No reservations found</h5>
+          <p>There are no reservations matching this status.</p>
+        </div>
+      </td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ status }}"><i class="bi bi-chevron-left"></i></a></li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+      <a class="page-link" href="?page={{ num }}&status={{ status }}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ status }}"><i class="bi bi-chevron-right"></i></a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}

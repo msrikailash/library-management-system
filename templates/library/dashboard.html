@@ -1,0 +1,281 @@
+{% extends 'layout.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+{% if is_admin %}
+<!-- ===== ADMIN DASHBOARD ===== -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card primary">
+      <div class="stat-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+      <div>
+        <div class="stat-label">Total Books</div>
+        <div class="stat-value">{{ total_books }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card info">
+      <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+      <div>
+        <div class="stat-label">Students</div>
+        <div class="stat-value">{{ total_users }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4 col-xl">
+    <div class="stat-card success">
+      <div class="stat-icon"><i class="bi bi-arrow-up-right-circle-fill"></i></div>
+      <div>
+        <div class="stat-label">Books Issued</div>
+        <div class="stat-value">{{ issued_books }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-6 col-xl">
+    <div class="stat-card danger">
+      <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+      <div>
+        <div class="stat-label">Overdue</div>
+        <div class="stat-value">{{ overdue_books }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-6 col-xl">
+    <div class="stat-card warning">
+      <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+      <div>
+        <div class="stat-label">Total Fines</div>
+        <div class="stat-value">₹{{ total_fines }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent Issues -->
+  <div class="col-lg-7">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-clock-history text-primary"></i> Recent Issues</span>
+        <a href="{% url 'issued_books' %}" class="btn btn-outline-secondary btn-sm">View All</a>
+      </div>
+      <div class="table-wrap">
+        <table class="lib-table">
+          <thead><tr>
+            <th>Book</th><th>Student</th><th>Due Date</th><th>Status</th>
+          </tr></thead>
+          <tbody>
+          {% for issue in recent_issues %}
+          <tr {% if issue.is_overdue %}class="overdue-row"{% endif %}>
+            <td>
+              <div style="font-weight:600;font-size:0.875rem;">{{ issue.book.title|truncatechars:30 }}</div>
+              <div style="font-size:0.75rem;color:var(--text-muted);">{{ issue.book.author }}</div>
+            </td>
+            <td>{{ issue.user.get_full_name|default:issue.user.username }}</td>
+            <td style="font-size:0.82rem;">{{ issue.due_date|date:"d M Y" }}</td>
+            <td>
+              {% if issue.is_overdue %}
+                <span class="badge-lib danger"><i class="bi bi-exclamation-circle"></i> Overdue</span>
+              {% else %}
+                <span class="badge-lib success"><i class="bi bi-check-circle"></i> On Track</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="text-center py-4" style="color:var(--text-faint);">No recent issues</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Overdue / Recent Books -->
+  <div class="col-lg-5">
+    <!-- Overdue List -->
+    {% if overdue_list %}
+    <div class="card-panel mb-4">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Overdue Books</span>
+        <a href="{% url 'issued_books' %}?status=overdue" class="btn btn-outline-secondary btn-sm">View All</a>
+      </div>
+      <div class="card-panel-body" style="padding-top:0.5rem;">
+        {% for issue in overdue_list %}
+        <div class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--border);">
+          <div style="width:36px;height:36px;border-radius:9px;background:var(--danger-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-book-fill text-danger"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ issue.book.title }}</div>
+            <div style="font-size:0.75rem;color:var(--danger);">{{ issue.user.get_full_name|default:issue.user.username }} · Due {{ issue.due_date|date:"d M" }}</div>
+          </div>
+          <a href="{% url 'return_book' issue.pk %}" class="btn btn-sm btn-danger">Return</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Books Added -->
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-stars text-warning"></i> Recently Added</span>
+        <a href="{% url 'book_list' %}" class="btn btn-outline-secondary btn-sm">Browse</a>
+      </div>
+      <div class="card-panel-body" style="padding-top:0.5rem;">
+        {% for book in recent_books %}
+        <div class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--border);">
+          <div style="width:36px;height:36px;border-radius:9px;background:var(--primary-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-journal-bookmark-fill" style="color:var(--primary-light);"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <a href="{% url 'book_detail' book.pk %}" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">{{ book.title }}</a>
+            <div style="font-size:0.75rem;color:var(--text-muted);">{{ book.author }}</div>
+          </div>
+          {% if book.is_available %}
+          <span class="badge-lib success">Available</span>
+          {% else %}
+          <span class="badge-lib danger">Out</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-faint py-2">No books yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- ===== STUDENT DASHBOARD ===== -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="stat-card primary">
+      <div class="stat-icon"><i class="bi bi-book-fill"></i></div>
+      <div>
+        <div class="stat-label">Books Held</div>
+        <div class="stat-value">{{ my_issues|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card danger">
+      <div class="stat-icon"><i class="bi bi-clock-fill"></i></div>
+      <div>
+        <div class="stat-label">Overdue</div>
+        <div class="stat-value">{{ overdue_issues|length }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card warning">
+      <div class="stat-icon"><i class="bi bi-currency-rupee"></i></div>
+      <div>
+        <div class="stat-label">Total Fines</div>
+        <div class="stat-value">₹{{ total_fines }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="stat-card success">
+      <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+      <div>
+        <div class="stat-label">Returned</div>
+        <div class="stat-value">{{ my_history|length }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if overdue_issues %}
+<div class="alert alert-danger d-flex align-items-center gap-2 mb-4">
+  <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+  <strong>{{ overdue_issues|length }} book{{ overdue_issues|length|pluralize }} overdue!</strong>
+  Please return them to avoid additional fines.
+</div>
+{% endif %}
+
+<div class="row g-4">
+  <!-- My Current Books -->
+  <div class="col-lg-7">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-bookmark-heart-fill text-primary"></i> My Current Books</span>
+        <a href="{% url 'my_books' %}" class="btn btn-outline-secondary btn-sm">All History</a>
+      </div>
+      <div class="table-wrap">
+        <table class="lib-table">
+          <thead><tr><th>Book</th><th>Due Date</th><th>Days Left</th><th>Fine</th></tr></thead>
+          <tbody>
+          {% for issue in my_issues %}
+          <tr {% if issue.is_overdue %}class="overdue-row"{% endif %}>
+            <td>
+              <a href="{% url 'book_detail' issue.book.pk %}" style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">{{ issue.book.title|truncatechars:35 }}</a>
+              <div style="font-size:0.75rem;color:var(--text-muted);">{{ issue.book.author }}</div>
+            </td>
+            <td style="font-size:0.82rem;">{{ issue.due_date|date:"d M Y" }}</td>
+            <td>
+              {% with days=issue.days_until_due %}
+              {% if days is not None %}
+                {% if days < 0 %}
+                  <span class="badge-lib danger">{{ issue.abs_days_until_due }} days overdue</span>
+                {% elif days <= 3 %}
+                  <span class="badge-lib warning">{{ days }} days</span>
+                {% else %}
+                  <span class="badge-lib success">{{ days }} days</span>
+                {% endif %}
+              {% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              {% with fine=issue.calculate_fine %}
+              {% if fine > 0 %}<span class="badge-lib danger">₹{{ fine }}</span>
+              {% else %}<span class="text-faint">—</span>{% endif %}
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4"><div class="empty-state">
+            <i class="bi bi-inbox"></i>
+            <h5>No active books</h5>
+            <p>You haven't borrowed any books yet.</p>
+            <a href="{% url 'book_list' %}" class="btn btn-primary btn-sm mt-2">Browse Library</a>
+          </div></td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Return History -->
+  <div class="col-lg-5">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-clock-history text-muted"></i> Recent Returns</span>
+      </div>
+      <div class="card-panel-body" style="padding-top:0.5rem;">
+        {% for issue in my_history %}
+        <div class="d-flex align-items-center gap-2 py-2" style="border-bottom:1px solid var(--border);">
+          <div style="width:36px;height:36px;border-radius:9px;background:var(--success-glow);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="bi bi-check2-circle" style="color:var(--success);"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:0.85rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ issue.book.title }}</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">Returned {{ issue.return_date|date:"d M Y" }}</div>
+          </div>
+          {% if issue.fine > 0 %}
+          <span class="badge-lib danger">₹{{ issue.fine }}</span>
+          {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-faint py-3 text-center">No return history yet.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

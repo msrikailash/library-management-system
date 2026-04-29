@@ -1,0 +1,63 @@
+{% extends 'layout.html' %}
+{% block title %}Activity Log{% endblock %}
+{% block page_title %}Activity Log{% endblock %}
+
+{% block content %}
+<div class="card-panel">
+  <div class="card-panel-header">
+    <span class="card-panel-title"><i class="bi bi-journal-text text-primary"></i> System Activity Log</span>
+  </div>
+  <div class="table-wrap">
+    <table class="lib-table">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>User</th>
+          <th>Action</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for log in page_obj %}
+      <tr>
+        <td style="font-size:0.82rem;color:var(--text-faint);">{{ log.timestamp|date:"d M Y, h:i A" }}</td>
+        <td>
+          {% if log.user %}
+            {{ log.user.username }}
+          {% else %}
+            <span style="color:var(--text-faint);">System</span>
+          {% endif %}
+        </td>
+        <td>
+          <span class="badge-lib" style="background:var(--primary-glow);color:var(--primary-light);">
+            {{ log.action }}
+          </span>
+        </td>
+        <td style="font-size:0.9rem;">{{ log.details }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" class="text-center p-4">No activity logs found.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% if page_obj.has_other_pages %}
+<nav class="mt-4 d-flex justify-content-center">
+  <ul class="pagination">
+    {% if page_obj.has_previous %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}"><i class="bi bi-chevron-left"></i></a></li>
+    {% endif %}
+    {% for num in page_obj.paginator.page_range %}
+    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+      <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+    </li>
+    {% endfor %}
+    {% if page_obj.has_next %}
+    <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}"><i class="bi bi-chevron-right"></i></a></li>
+    {% endif %}
+  </ul>
+</nav>
+{% endif %}
+{% endblock %}
