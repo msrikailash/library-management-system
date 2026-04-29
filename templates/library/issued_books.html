@@ -76,7 +76,12 @@
         <td style="font-size:0.82rem;">{{ issue.return_date|date:"d M Y"|default:"—" }}</td>
         <td>
           {% if issue.fine > 0 %}
-            <span class="badge-lib danger">₹{{ issue.fine }}</span>
+            <div class="fw-bold text-danger mb-1">${{ issue.fine }}</div>
+            {% if issue.fine_paid %}
+              <span class="badge-lib success" style="font-size:0.65rem;">Paid</span>
+            {% else %}
+              <span class="badge-lib danger" style="font-size:0.65rem;">Unpaid</span>
+            {% endif %}
           {% else %}
             <span style="color:var(--text-faint);">—</span>
           {% endif %}
@@ -91,13 +96,21 @@
           {% endif %}
         </td>
         <td>
-          {% if issue.status != 'returned' %}
-          <a href="{% url 'return_book' issue.pk %}" class="btn btn-sm btn-warning text-dark">
-            <i class="bi bi-arrow-down-left-circle me-1"></i>Return
-          </a>
-          {% else %}
-          <span style="color:var(--text-faint);font-size:0.8rem;">Closed</span>
-          {% endif %}
+          <div class="d-flex flex-column gap-1">
+            {% if issue.status != 'returned' %}
+            <a href="{% url 'return_book' issue.pk %}" class="btn btn-sm btn-warning text-dark w-100">
+              <i class="bi bi-arrow-down-left-circle me-1"></i>Return
+            </a>
+            {% else %}
+              {% if issue.fine > 0 and not issue.fine_paid %}
+              <a href="{% url 'mark_fine_paid' issue.pk %}" class="btn btn-sm btn-success w-100">
+                <i class="bi bi-check-lg me-1"></i>Mark Paid
+              </a>
+              {% else %}
+              <span style="color:var(--text-faint);font-size:0.8rem;" class="text-center">Closed</span>
+              {% endif %}
+            {% endif %}
+          </div>
         </td>
       </tr>
       {% empty %}

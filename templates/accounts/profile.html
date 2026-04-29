@@ -1,6 +1,6 @@
 {% extends 'layout.html' %}
-{% block title %}Profile{% endblock %}
-{% block page_title %}My Profile{% endblock %}
+{% block title %}Settings{% endblock %}
+{% block page_title %}Settings{% endblock %}
 
 {% block content %}
 <div class="row g-4">
@@ -91,6 +91,29 @@
       </div>
       <div class="card-panel-body">
         <p style="color:var(--text-muted);font-size:0.9rem;">{{ user.address }}</p>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- Library Settings (Admin only) -->
+  {% if user.is_admin_user %}
+  <div class="col-12 mt-4">
+    <div class="card-panel">
+      <div class="card-panel-header">
+        <span class="card-panel-title"><i class="bi bi-sliders"></i> Library Configuration</span>
+      </div>
+      <div class="card-panel-body">
+        <form method="post" class="d-flex align-items-end gap-3" style="max-width: 400px;">
+          {% csrf_token %}
+          <div style="flex:1;">
+            <label class="form-label text-muted-lib mb-1" style="font-size: 0.85rem;">Fine Amount per Day ($)</label>
+            <input type="number" step="0.01" min="0" name="fine_per_day" value="{{ library_setting.fine_per_day }}" class="form-control" required>
+          </div>
+          <div>
+            <button type="submit" name="update_fine" class="btn btn-primary">Update Setting</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>

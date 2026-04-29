@@ -278,6 +278,26 @@ def return_book_view(request, pk):
 
 
 @admin_required
+def mark_fine_paid(request, pk):
+    issue = get_object_or_404(IssuedBook, pk=pk)
+    if issue.fine > 0 and not issue.fine_paid:
+        issue.fine_paid = True
+        issue.save()
+        
+        ActivityLog.objects.create(
+            user=request.user,
+            action='Fine Paid',
+            details=f'Marked fine (${issue.fine}) as paid for "{issue.book.title}" (User: {issue.user.username})'
+        )
+        
+        messages.success(request, f'Fine for "{issue.book.title}" has been marked as paid.')
+    else:
+        messages.info(request, 'No unpaid fine for this record.')
+        
+    return redirect('issued_books')
+
+
+@admin_required
 def issued_books_view(request):
     status = request.GET.get('status', 'issued')
     issues = IssuedBook.objects.select_related('user', 'book').all()

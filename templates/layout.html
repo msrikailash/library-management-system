@@ -51,7 +51,7 @@
 
     <div class="nav-section-label">Account</div>
     <a href="{% url 'profile' %}" class="nav-item {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
-      <i class="bi bi-person-fill"></i> Profile
+      <i class="bi bi-gear-fill"></i> Settings
     </a>
     <a href="{% url 'logout' %}" class="nav-item logout-item">
       <i class="bi bi-box-arrow-right"></i> Logout

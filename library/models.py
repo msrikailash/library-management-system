@@ -47,14 +47,28 @@ class Book(models.Model):
         super().save(*args, **kwargs)
 
 
+class LibrarySetting(models.Model):
+    fine_per_day = models.DecimalField(max_digits=5, decimal_places=2, default=1.00)
+
+    class Meta:
+        verbose_name = "Library Setting"
+        verbose_name_plural = "Library Settings"
+
+    @classmethod
+    def get_settings(cls):
+        setting, created = cls.objects.get_or_create(pk=1)
+        return setting
+
+    def __str__(self):
+        return f"Library Settings (Fine: ${self.fine_per_day}/day)"
+
+
 class IssuedBook(models.Model):
     STATUS_CHOICES = (
         ('issued', 'Issued'),
         ('returned', 'Returned'),
         ('overdue', 'Overdue'),
     )
-
-    FINE_PER_DAY = Decimal('5.00')  # ₹5 per day fine
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -65,7 +79,8 @@ class IssuedBook(models.Model):
     issue_date = models.DateTimeField(default=timezone.now)
     due_date = models.DateTimeField()
     return_date = models.DateTimeField(blank=True, null=True)
-    fine = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal('0.00'))
+    fine = models.DecimalField(max_digits=6, decimal_places=2, default=0.00)
+    fine_paid = models.BooleanField(default=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='issued')
     issued_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -90,13 +105,16 @@ class IssuedBook(models.Model):
         super().save(*args, **kwargs)
 
     def calculate_fine(self):
+        setting = LibrarySetting.get_settings()
+        fine_rate = setting.fine_per_day
+        
         if self.return_date:
             if self.return_date > self.due_date:
                 overdue_days = (self.return_date - self.due_date).days
-                return self.FINE_PER_DAY * overdue_days
+                return fine_rate * overdue_days
         elif timezone.now() > self.due_date:
             overdue_days = (timezone.now() - self.due_date).days
-            return self.FINE_PER_DAY * overdue_days
+            return fine_rate * overdue_days
         return Decimal('0.00')
 
     def is_overdue(self):

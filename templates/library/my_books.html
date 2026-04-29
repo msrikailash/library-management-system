@@ -34,10 +34,15 @@
         <td style="font-size:0.82rem;">{{ issue.return_date|date:"d M Y"|default:"—" }}</td>
         <td>
           {% if issue.fine > 0 %}
-            <span class="badge-lib danger">₹{{ issue.fine }}</span>
+            <div class="fw-bold text-danger mb-1">${{ issue.fine }}</div>
+            {% if issue.fine_paid %}
+              <span class="badge-lib success" style="font-size:0.65rem;">Paid</span>
+            {% else %}
+              <span class="badge-lib danger" style="font-size:0.65rem;">Unpaid</span>
+            {% endif %}
           {% elif issue.status == 'issued' %}
             {% with fine=issue.calculate_fine %}
-              {% if fine > 0 %}<span class="badge-lib warning">₹{{ fine }} (pending)</span>
+              {% if fine > 0 %}<span class="badge-lib warning">${{ fine }} (pending)</span>
               {% else %}<span style="color:var(--text-faint);">—</span>{% endif %}
             {% endwith %}
           {% else %}

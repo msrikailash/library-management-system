@@ -48,7 +48,25 @@ def logout_view(request):
 
 @login_required
 def profile_view(request):
-    return render(request, 'accounts/profile.html', {'user': request.user})
+    context = {'user': request.user}
+    
+    if request.user.is_admin_user:
+        from library.models import LibrarySetting
+        setting = LibrarySetting.get_settings()
+        
+        if request.method == 'POST' and 'update_fine' in request.POST:
+            new_fine = request.POST.get('fine_per_day')
+            try:
+                setting.fine_per_day = float(new_fine)
+                setting.save()
+                messages.success(request, 'Library fine settings updated successfully.')
+                return redirect('profile')
+            except ValueError:
+                messages.error(request, 'Invalid fine amount.')
+                
+        context['library_setting'] = setting
+
+    return render(request, 'accounts/profile.html', context)
 
 
 @login_required
