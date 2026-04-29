@@ -287,7 +287,7 @@ def mark_fine_paid(request, pk):
         ActivityLog.objects.create(
             user=request.user,
             action='Fine Paid',
-            details=f'Marked fine (${issue.fine}) as paid for "{issue.book.title}" (User: {issue.user.username})'
+            details=f'Marked fine (₹{issue.fine}) as paid for "{issue.book.title}" (User: {issue.user.username})'
         )
         
         messages.success(request, f'Fine for "{issue.book.title}" has been marked as paid.')

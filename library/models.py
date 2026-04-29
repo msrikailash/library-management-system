@@ -60,7 +60,7 @@ class LibrarySetting(models.Model):
         return setting
 
     def __str__(self):
-        return f"Library Settings (Fine: ${self.fine_per_day}/day)"
+        return f"Library Settings (Fine: ₹{self.fine_per_day}/day)"
 
 
 class IssuedBook(models.Model):
