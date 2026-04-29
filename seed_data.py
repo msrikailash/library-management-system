@@ -73,7 +73,7 @@ books_data = [
     {"title": "Guns, Germs, and Steel", "author": "Jared Diamond", "isbn": "9780393354324", "category": "History", "quantity": 2, "publisher": "W. W. Norton", "published_year": 1997, "description": "The fates of human societies."},
     # Philosophy
     {"title": "Meditations", "author": "Marcus Aurelius", "isbn": "9780140449334", "category": "Philosophy", "quantity": 3, "publisher": "Penguin Classics", "published_year": 180, "description": "Personal writings of the Roman Emperor on Stoic philosophy."},
-    {"title": "The Republic", "author": "Plato", "isbn": "9780140455113", "category": "Philosophy", "quantity": 2, "publisher": "Penguin Classics", "published_year": -380, "description": "One of the most influential works of philosophy in Western thought."},
+    {"title": "The Republic", "author": "Plato", "isbn": "9780140455113", "category": "Philosophy", "quantity": 2, "publisher": "Penguin Classics", "published_year": 2007, "description": "One of the most influential works of philosophy in Western thought."},
     # Business
     {"title": "The Lean Startup", "author": "Eric Ries", "isbn": "9780307887894", "category": "Business", "quantity": 3, "publisher": "Crown Business", "published_year": 2011, "description": "How today's entrepreneurs use continuous innovation."},
     {"title": "Zero to One", "author": "Peter Thiel", "isbn": "9780804139298", "category": "Business", "quantity": 2, "publisher": "Crown Business", "published_year": 2014, "description": "Notes on startups, or how to build the future."},
